@@ -1,20 +1,3 @@
-\documentclass[
-    11pt,            % 8-20pt possible
-    techreport,        % select between  ``techreport'', ``report'', 
-    affiltop,       % switch, put affiliations under authors (instead 
-]{art}
-
-\input{metadata.tex}
-\input{macros.tex}
-
-\begin{document}
-
-\maketitle
-
-% \iftoggle{SI}{}{\ifdef{\pubSI}{\footnotetext{\pubSI}}{}}
-
-\tableofcontents
-
 \section{Introduction}
 
 In the Anoma protocol, users submit preferences about the system state and the system continuously updates its state based on those preferences. The Anoma Resource Machine (ARM) is the part of the Anoma protocol that defines and enforces the rules for valid state updates that satisfy users' preferences. The new proposed state is then agreed on by the consensus participants. In that sense the role of the Anoma Resource Machine in the Anoma protocol is similar to the role of the Ethereum Virtual Machine in the Ethereum protocol.
@@ -81,7 +64,7 @@ One way to achieve this would be to publish a \textbf{commitment} to the resourc
     The resource commitment is also used as the resource's address $r.addr$ in the content-addressed storage.
 \end{remark}
 
-All resource commitments are stored in an append-only data structure called a \textbf{commitment accumulator} $CMacc$. Every time a resource is created, its commitment is added to the commitment accumulator. The resource commitment accumulator $CMacc$ is external to the resource machine, but the resource machine can read from it. A commitment accumulator is a cryptographic accumulator (\cite{DBLP:journals/corr/abs-2103-04330}) that allows to prove membership for elements accumulated in it, provided a witness and the accumulated value.
+All resource commitments are stored in an append-only data structure called a \textbf{commitment accumulator} $CMacc$. Every time a resource is created, its commitment is added to the commitment accumulator. The resource commitment accumulator $CMacc$ is external to the resource machine, but the resource machine can read from it. A commitment accumulator is a cryptographic accumulator~\citep{DBLP:journals/corr/abs-2103-04330} that allows to prove membership for elements accumulated in it, provided a witness and the accumulated value.
 
 Each time a commitment is added to the $CMacc$, the accumulator and all witnesses of the already accumulated commitments are updated.
 For a commitment that existed in the accumulator before a new one was added, both the old witness and the new witness (with the corresponding accumulated value parameter) can be used to prove membership. However, the older the witness (and, consequently, the accumulator) that is used in the proof, the more information about the resource it reveals (the resource had to exist before it was consumed, and an older accumulator gives more concrete boundaries on the resource's creation time). For that reason, it is recommended to use fresher parameters when proving membership.
@@ -299,7 +282,7 @@ To support the shell layer, the resource machine must have the functionality to 
 
 \subsection{ARMs as intent machines}
 
-Together with $(CMtree, NFset)$, the Anoma Resource Machine forms an instantiation of the intent machine, where the state $S = (CMtree, NFset)$, a batch $B = Transaction$, and the transaction verification function of the resource machine corresponds to the state transition function of the intent machine as described in~\cite{art-2024-intent-machine}. To formally satisfy the intent machine's signature, the resource machine's verify function may return the processed transaction along with the new state.
+Together with $(CMtree, NFset)$, the Anoma Resource Machine forms an instantiation of the intent machine, where the state $S = (CMtree, NFset)$, a batch $B = Transaction$, and the transaction verification function of the resource machine corresponds to the state transition function of the intent machine~\citep{art-2024-intent-machine}. To formally satisfy the intent machine's signature, the resource machine's verify function may return the processed transaction along with the new state.
 
 \subsection{Create}
 
@@ -340,8 +323,8 @@ Taking a transaction as input verifies its validity according to the transaction
 
 The ARM output state data that needs to be stored includes resource plaintexts, the commitment accumulator and the nullifier set. The table below defines the format for that data assumed by the ARM.
 
-\begin{table}[!h]
-\begin{center}
+\begin{figure}[!h]
+\centering
 \begin{tabular}{|c|c|c|c|}
 \hline
  \textbf{Name} & \textbf{Structure} & \textbf{Key Type} & \textbf{Value Type} \\ \hline
@@ -349,11 +332,10 @@ The ARM output state data that needs to be stored includes resource plaintexts, 
   Commitment accumulator (leaf) & - & (timestamp, $\mathbb{F}$) & $\mathbb{F}$ \\ \hline
  Nullifier set & Set & $\mathbb{F}$ & $\mathbb{F}$ \\ \hline
  Hierarchical index & Chained Hash sets & Tree path & $\mathbb{F}$ \\ \hline
- Data blob storage & Key-value store with deletion criteria & $\mathbb{F}$ & (variable length byte array, deletion\_criteria) \\ \hline
+ Data blob storage & Key-value store with del. criteria & $\mathbb{F}$ & (var. length byte array, del. criteria) \\ \hline
 \end{tabular}
 \caption{Stored Data Format.}
-\end{center}
-\end{table}
+\end{figure}
 
 \subsubsection{$CMtree$}
 
@@ -457,8 +439,8 @@ Nockma is a combinator interpreter defined as a set of reduction rules over noun
 
 The only difference between Nockma and Nock4K reduction rules is that instruction 12 is defined for scrying.
 
-\begin{table}[!h]
-\begin{center}
+\begin{figure}[!htb]
+\centering
 \begin{tabular}{|c|c|}
 \hline
 Pattern & Reduces to \\
@@ -534,8 +516,7 @@ $*a$ & $*a$ \\
 \end{tabular}
 \caption{Nockma reduction rules.}
 \label{table:nockma}
-\end{center}
-\end{table}
+\end{figure}
 
 
 Used with the resource machine, Nockma should return a set of modifications to the state transition expressed by the input transaction:
@@ -690,156 +671,7 @@ and composes all three transactions together, producing a balanced transaction $
 
 In practice, the step of creation of the transaction $TX_{S_1}$ can be merged with the composing step, but we separate the steps for clarity.
 
-\section{Future directions}
+\section{Conclusion and Future directions}
 
-This report contains the necessary information to build a resource machine that has the desired properties, but there are more properties we might want and more questions worth investigating. One such question would be whether resource logics should be able to see all resources in a transaction. This would allow us to perform \say{for all} checks — for example, a resource logic might want to enforce a non-inclusion of resources of a certain type in this transaction. However, enforcing such a feature is a non-trivial task, and it is not clear if it is as beneficial as it seems: for example, if there is a valid way to escape such checks (e.g., by wrapping a resource in another resource kind), it won’t be helpful to have a mechanism for checking. 
+This report contains the necessary information to build a resource machine that has the desired properties, but there are more properties we might want and more questions worth investigating. One such question would be whether resource logics should be able to see all resources in a transaction. This would allow us to perform \say{for all} checks — for example, a resource logic might want to enforce a non-inclusion of resources of a certain type in this transaction. However, enforcing such a feature is a non-trivial task, and it is not clear if it is as beneficial as it seems: for example, if there is a valid way to escape such checks (e.g., by wrapping a resource in another resource kind), it will not be helpful to have a mechanism for checking. 
 
-%\section{Concluding remarks}
-%\section{Acknowledgements}
-\nocite{*}
-\bibliography{ref.bib}
-
-\appendix
-\section{Three-party NFT exchange cycle}
-Another example is a three-party exchange cycle. Each party uses ephemeral resource logics to express their intents.
-\hfill\break
-\hfill\break
-\textbf{Step 1:} specify intents
-
-\begin{itemize}
-    \item \textbf{Alice's intent:} Alice wants to exchange her star NFT resource $R^A_{star}$ for a blue dolphin NFT resource $R_{dolphin}$
-    \item \textbf{Bob's intent:} Bob wants to exchange his blue dolphin NFT $R^B_{dolphin}$ for a tree NFT resource $R_{tree}$
-    \item \textbf{Charlie's intent:} Charlie wants to exchange his tree NFT $R^C_{tree}$ for a star NFT resource $R_{star}$
-\end{itemize}
-
-\begin{center}
-    \includegraphics[width = \textwidth]{3party_rm_new.png}
-\end{center}
-
-\textbf{Step 2:} create initial transactions
-
-Alice's initial transaction:
-\begin{itemize}
-    \item $rts= \{rt_{R^A_{star}}\}$
-    \item $cms = \{cm_{R^A_{I^{A}}}\}$
-    \item $nfs = \{nf_{R^A_{star}}\}$
-    \item Proofs:
-    \begin{itemize}
-        \item $\Pi^A_{\Delta}$
-        \item $\Pi^A_{compl}$
-        \item $\Pi^A_{rl} = \{\pi^A_{star}, \pi^A_I\}$
-    \end{itemize}
-    \item $\Delta \mapsto \{I^{A}: 1, star: -1, \}$ – for simplicity, represent $\Delta$ as a dictionary
-    \item $extra = extra^A$
-    \item $\Phi = \Phi^A$
-\end{itemize}
-
-Bob's initial transaction:
-\begin{itemize}
-    \item $rts = \{rt_{R^B_{dolphin}}\}$
-    \item $cms = \{cm_{R^B_{I^{B}}}\}$
-    \item $nfs = \{nf_{R^B_{doplhin}}\}$
-    \item Proofs:
-    \begin{itemize}
-        \item $\Pi^B_{\Delta}$
-        \item $\Pi^B_{compl}$
-        \item $\Pi^B_{rl} = \{\pi^B_{dolphin}, \pi^B_I\}$
-    \end{itemize}
-    \item $\Delta \mapsto \{I^{B}: 1, dolphin: -1 \}$
-    \item $extra = extra^B$
-    \item $\Phi = \Phi^B$
-\end{itemize}
-
-Charlie's initial transaction:
-\begin{itemize}
-    \item $rts = \{rt_{R^C_{tree}}\}$
-    \item $cms = \{cm_{R^C_{I^{C}}}\}$
-    \item $nfs = \{nf_{R^C_{tree}}\}$
-    \item Proofs:
-    \begin{itemize}
-        \item $\Pi^C_{\Delta}$
-        \item $\Pi^C_{compl}$
-        \item $\Pi^C_{rl} = \{\pi^C_{tree}, \pi^C_I\}$
-    \end{itemize}
-    \item $\Delta \mapsto \{I^{C}: 1, tree: -1, \}$
-    \item $extra = extra^C$
-    \item $\Phi = \Phi^C$
-\end{itemize}
-
-\textbf{Step 3:} solve
-
-A solver $S_1$, seeing $TX^A$ and $TX^B$, creates a transaction $TX^{S_1}$ (on the diagram: $TX_{3.1}$, green arrows):
-
-\begin{itemize}
-    \item $rts = \{rt_{R^A_{I^{A}}}\}$
-    \item $cms = \{cm_{R^A_{dolphin}}\}$
-    \item $nfs = \{nf_{R^A_{I^{A}}}\}$
-        \item Proofs:
-    \begin{itemize}
-        \item $\Pi^{S_1}_{\Delta}$
-        \item $\Pi^{S_1}_{compl}$
-        \item $\Pi^{S_1}_{rl} = \{\pi^{S_1}_{dolphin}, \pi^{S_1}_{I_A}\}$
-    \end{itemize}
-    \item $\Delta \mapsto \{dolphin: 1, I^{A}: -1\}$
-    \item $extra = extra^{S_1}$
-    \item $\Phi = \Phi^{S_1}$
-\end{itemize}
-
-and composes all three transactions together, producing a transaction $TX_{3.1}$:
-
-\begin{itemize}
-    \item $rts = \{rt_{R^A_{star}}, rt_{R^B_{dolphin}}, rt_{R^A_{I^{A}}}\}$
-    \item $cms = cms^{A} \sqcup cms^B \sqcup cms^{S_1} =\{
-    cm_{R^A_{I^{A}}}, cm_{R^B_{I^{B}}}, cm_{R^A_{dolphin}}\}$
-    \item $nfs = nfs^A \sqcup nfs^B \sqcup nfs^{S_1} = \{nf_{R^A_{star}}, nf_{R^B_{dolphin}}, nf_{R^A_{I^{A}}}\}$
-        \item Proofs:
-    \begin{itemize}
-        \item $\Pi^{3.1}_{\Delta} = AGG(\Pi^A_{\Delta}, \Pi^B_{\Delta}, \Pi^{S_1}_{\Delta})$
-        \item $\Pi^{3.1}_{compl} = \Pi^A_{compl} \sqcup \Pi^B_{compl} \sqcup \Pi^{S_1}_{compl}$
-        \item $\Pi^{3.1}_{rl} = \Pi^A_{rl} \sqcup \Pi^B_{rl} \sqcup \Pi^{S_1}_{rl}$
-    \end{itemize}
-    \item $\Delta \mapsto \{I^{A}: 0, I^{B}: 1, star: -1, dolphin: 0\}$
-    \item $extra = extra^A \cup extra^B \cup extra^{S_1}$
-    \item $\Phi = G(\Phi^A, \Phi^B, \Phi^{S_1})$
-\end{itemize}
-
-\textbf{Step 4:} continue solving
-
-Seeing $TX^C$ and $TX_{3.1}$, a solver $S_2$ creates a transaction $TX_{S_2}$ (on the diagram: $TX_{4.1}$, green arrows):
-
-\begin{itemize}
-    \item $rts = \{rt_{R^C_{I^{C}}}, rt_{R^B_{I^{B}}}\}$
-    \item $cms = \{
-    cm_{R^C_{star}}, cm_{R^B_{tree}}\}$
-    \item $nfs = \{nf_{R^C_{I^{C}}}, nf_{R^B_{I^{B}}}\}$
-    \item Proofs:
-    \begin{itemize}
-        \item $\Pi^{S_2}_{\Delta}$
-        \item $\Pi^{S_2}_{compl}$
-        \item $\Pi^{S_2}_{rl} = \{\pi^{S_2}_{star}, \pi^{S_2}_{I_C}\, \pi^{S_2}_{tree}, \pi^{S_2}_{I_B}\}$
-    \end{itemize}
-    \item $\Delta \mapsto \{I^{C}: -1, I^{B}: -1, star: 1, tree: 1\}$
-    \item $extra = extra^{S_2}$
-    \item $\Phi = \Phi^{S_2}$
-\end{itemize}
-
-and composes all three into a balanced transaction $TX_{4.1}$:
-
-\begin{itemize}
-    \item $rts = \{rt_{R^A_{star}}, rt_{R^B_{dolphin}}, rt_{R^C_{tree}}, rt_{R^A_{I^{A}}}, rt_{R^B_{I^{B}}}, rt_{R^C_{I^{C}}}\}$
-    \item $cms = cms^{TX^{3.1}} \sqcup cms^{S_2} =\{cm_{R^A_{dolphin}}, cm_{R^B_{tree}}, cm_{R^C_{star}}, cm_{R^A_{I^{A}}}, cm_{R^B_{I^{B}}}, cm_{R^C_{I^{C}}}\}$
-    \item $nfs = nfs^{TX^{3.1}} \sqcup nfs^{S_2} = \{nf_{R^A_{star}}, nf_{R^B_{dolphin}}, nf_{R^C_{tree}}, nf_{R^A_{I^{A}}}, nf_{R^B_{I^{B}}}, nf_{R^C_{I^{C}}}\}$
-    \item Proofs:
-    \begin{itemize}
-        \item $\Pi^{4.1}_{\Delta} = AGG(\Pi^{3.1}_{\Delta}, \Pi^{C}_{\Delta}, \Pi^{S_2}_{\Delta})$
-        \item $\Pi^{4.1}_{compl} = \Pi^C_{compl} \sqcup \Pi^{3.1}_{compl} \sqcup \Pi^{S_2}_{compl}$
-        \item $\Pi^{4.1}_{rl} = \Pi^C_{rl} \sqcup \Pi^{3.1}_{rl} \sqcup \Pi^{S_2}_{rl}$
-    \end{itemize}
-    \item $\Delta \mapsto \{I^{A}: 0, I^{B}: 0, I^{C}: 0, star: 0, dolphin: 0, tree: 0\}$
-    \item $extra = extra^A \cup extra^B \cup extra^C \cup extra^{S_1} \cup extra^{S_2}$
-    \item $\Phi = G(\Phi^A, \Phi^B, \Phi^{S_1}, \Phi^C, \Phi^{S_2})$
-\end{itemize}
-
-In practice, the step of creation of the transactions $TX_{S_1}$ and $TX_{S_2}$ can be merged with the composing step, but we separate the steps for clarity.
-
-\end{document}

@@ -5,7 +5,7 @@
 %--------------------------------------------------------------------------
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{art}[19/08/2023, v1.0]
+\ProvidesClass{art}[19/08/2023, v1.1]
 \RequirePackage{etoolbox}         % a necessity
 
 % Class options and conditionals
@@ -24,15 +24,31 @@
 \newtoggle{footpreprint}          % add a "Preprint" text in footer
 \toggletrue{footpreprint}         % on by default
 \newtoggle{debug}                 % debugging activated
+\newtoggle{history}               % information about the revision history
+\toggletrue{history}        
+\newtoggle{toc}                   % table of contents
+\togglefalse{toc}                  % on by default
+\newtoggle{conference}            % conference mode
+\togglefalse{conference}           % off by default
+
 
 % Option for type of article
 \newcommand{\arttype}{ARTICLE}
 \DeclareOption{techreport}{\renewcommand{\arttype}{TECHNICAL REPORT}}
-\DeclareOption{report}{\renewcommand{\arttype}{REPORT}}
-\DeclareOption{proposa}{\renewcommand{\arttype}{PROPOSAL}}
 \DeclareOption{commun}{\renewcommand{\arttype}{COMMUNICATION}}
 \DeclareOption{review}{\renewcommand{\arttype}{REVIEW}}
 \DeclareOption{persp}{\renewcommand{\arttype}{PERSPECTIVE}}
+\DeclareOption{nohistory}{\togglefalse{history}}
+\DeclareOption{toc}{\toggletrue{toc}}
+
+\DeclareOption{conference}{%
+%set fontize to 12pt
+\PassOptionsToClass{12pt}{extarticle}%
+\renewcommand{\arttype}{CONFERENCE ARTICLE}%
+\toggletrue{conference}%
+\togglefalse{history}%
+}
+
 
 % Option for switching to SI format
 \DeclareOption{SI}{\toggletrue{SI}}
@@ -41,12 +57,12 @@
 \DeclareOption{twocolumn}{
   \toggletrue{twocolumn}
   \PassOptionsToClass{twocolumn}{extarticle}
-}
-
-% Option for line numbers
-\DeclareOption{lineno}{\toggletrue{linenumbers}}
-
-% Option for footer
+  }
+  
+  % Option for line numbers
+  \DeclareOption{lineno}{\toggletrue{linenumbers}}
+  
+  % Option for footer
 \DeclareOption{nofootdate}{\togglefalse{footdate}}
 \DeclareOption{nofootprint}{\togglefalse{footpreprint}}
 
@@ -79,38 +95,89 @@
   }
 }{}
 
+
 % Fonts and language
 
-% Fonts
-\RequirePackage{lmodern} % TODO check for Libertinus
-\renewcommand*\familydefault{\sfdefault}
+\RequirePackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+\RequirePackage{cmap}
+\RequirePackage[TS1,T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\else % if luatex or xelatex
+\ifxetex
+    
+   \usepackage{sansmathfonts}
+   \usepackage{amssymb,amsmath}
+    \usepackage{mathrsfs}
+    \usepackage[T1]{fontenc}%
+    \usepackage[utf8]{inputenc}
+    \renewcommand*\familydefault{\sfdefault}
+    \usepackage{sansmathfonts}
+
+
+    % \usepackage[euler]{fontsetup}
+    % \usepackage[concrete]{fontsetup}
+    % \usepackage[libertinus]{fontsetup}
+    % \usepackage[kerkis]{fontsetup}
+    % \usepackage[gfsdidot]{fontsetup}
+  \else
+    \usepackage{fontspec}
+  \fi
+  %\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+
+% Language
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+\RequirePackage[english]{babel}
+\else
+\usepackage{polyglossia}
+\setmainlanguage[]{english}
+\iftoggle{conference}{
+\setmonofont{JetBrains Mono}[ Scale= 0.65]
+}{\setmonofont{JetBrains Mono}[ Scale=0.85 ]}
+\fi
+
+
 
 % Microtype
 \AtEndOfClass{\RequirePackage{microtype}}
 
 % Use \say command for quotation
-\usepackage{dirtytalk}
+\RequirePackage{dirtytalk}
 
 % for double-brackets
-\usepackage{stmaryrd}
+\RequirePackage{stmaryrd}
 
 %% Set up main page fonts
-\newcommand{\headerfont}{\fontfamily{lmss}\color{gray}\bfseries\sffamily\fontsize{16pt}{20pt}\selectfont}
-\newcommand{\footerfont}{\normalfont\sffamily\fontsize{7pt}{9pt}\selectfont}
-\newcommand{\titlefont}{\fontfamily{lmss}\bfseries\fontsize{22pt}{24pt}\selectfont}
-\newcommand{\subtitlefont}{\fontfamily{lmss}\bfseries\fontsize{15pt}{20pt}\selectfont}
-\newcommand{\artypefont}{\fontfamily{lmss}\bfseries\fontsize{7pt}{9pt}\selectfont}
-\newcommand{\contactfont}{\itshape\sffamily\fontsize{7pt}{9pt}\selectfont}
-\newcommand{\absfont}{\normalfont\sffamily\fontsize{8pt}{11pt}\selectfont}
-\newcommand{\keywordsfont}{\normalfont\sffamily\fontsize{8pt}{11pt}\selectfont}
-\newcommand{\footnotefont}{\normalfont\sffamily\fontsize{7}{9}\selectfont}
+\iftoggle{conference}{%
+\newcommand{\headerfont}{\color{gray}\bfseries\fontsize{14pt}{14pt}\selectfont}
+\newcommand{\footerfont}{\normalfont\fontsize{10pt}{11pt}\selectfont}
+\newcommand{\titlefont}{\bfseries\fontsize{20pt}{22pt}\selectfont}
+\newcommand{\subtitlefont}{\bfseries\fontsize{15pt}{18pt}\selectfont}
+\newcommand{\artypefont}{\bfseries\fontsize{7pt}{9pt}\selectfont}
+\newcommand{\contactfont}{\itshape\fontsize{10pt}{11pt}\selectfont}
+\newcommand{\absfont}{\normalfont\fontsize{10pt}{11pt}\selectfont}
+\newcommand{\keywordsfont}{\normalfont\fontsize{10pt}{11pt}\selectfont}
+\newcommand{\footnotefont}{\normalfont\fontsize{10pt}{11pt}\selectfont}
+
+}{%
+\newcommand{\headerfont}{\color{gray}\bfseries\fontsize{16pt}{20pt}\selectfont}
+\newcommand{\footerfont}{\normalfont\fontsize{7pt}{9pt}\selectfont}
+\newcommand{\titlefont}{\bfseries\fontsize{22pt}{24pt}\selectfont}
+\newcommand{\subtitlefont}{\bfseries\fontsize{15pt}{20pt}\selectfont}
+\newcommand{\artypefont}{\bfseries\fontsize{7pt}{9pt}\selectfont}
+\newcommand{\contactfont}{\itshape\fontsize{7pt}{9pt}\selectfont}
+\newcommand{\absfont}{\normalfont\fontsize{10pt}{11pt}\selectfont}
+\newcommand{\keywordsfont}{\normalfont\fontsize{8pt}{11pt}\selectfont}
+\newcommand{\footnotefont}{\normalfont\fontsize{7pt}{9pt}\selectfont}
+}
 
 % AMS maths packages
 \RequirePackage{
   amsmath,
   amsfonts,
   amsthm,
-  amssymb
+  % amssymb
 }
 \allowdisplaybreaks
 
@@ -163,31 +230,6 @@
 % For listings
 \RequirePackage{minted}
 
-% Encodings
-\RequirePackage{ifxetex,ifluatex}
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
-  \RequirePackage{cmap}
-  \RequirePackage[TS1,T1]{fontenc}
-  \RequirePackage[utf8]{inputenc}
-\else % if luatex or xelatex
-  \ifxetex
-    \usepackage{mathspec}
-    % undo the wrong changes made by mathspec
-    \let\RequirePackage\original@RequirePackage
-    \let\usepackage\RequirePackage
-  \else
-    \usepackage{fontspec}
-  \fi
-  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
-\fi
-
-% Language
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
-  \RequirePackage[english]{babel}
-\else
-  \usepackage{polyglossia}
-  \setmainlanguage[]{english}
-\fi
 
 % General pagination setup and tools
 
@@ -231,9 +273,26 @@
 \RequirePackage{graphicx}                     % include pictures
 \RequirePackage{tikz}                         % drawing pictures
 \RequirePackage{templates/ART/quiver}     % drawing quiver diagrams
-\usetikzlibrary{svg.path}                     % TIKZ svg paths
-\usetikzlibrary{calc}                         % TIKZ calculations
+\usetikzlibrary{%
+svg.path,                     % TIKZ svg paths
+calc,                        % TIKZ calculations
+graphs,                      % TIKZ graphs
+trees,                       % TIKZ trees
+shapes.geometric,            % TIKZ geometric shapes
+arrows,                      % TIKZ arrows
+positioning,                 % TIKZ positioning
+backgrounds,                 % TIKZ backgrounds
+fit,                         % TIKZ fitting
+}
+
 \RequirePackage[framemethod=tikz]{mdframed}   % breakable framed and coloured boxes
+
+\iftoggle{conference}{%
+\tikzset{
+  every picture/.append style={transform shape, scale=0.8}
+}
+}{}
+
 
 %% Set document color scheme
 \RequirePackage{xcolor}                       % driver indepentent color extensions
@@ -256,15 +315,19 @@
   tabularx,                                   % width-expanding column (with 'x')
   multirow,                                   % for multirow cells (with \\)
   colortbl,                                   % to add colours to table cells,
-  xypic,                                      % for commutative diagrams
+  %xypic,                                      % for commutative diagrams
   footnote                                    % support for footnotes inside tabular
+  % colortblarray,
+  % array,                                      % for better column definitions 
 }
 
-% Support footnotes inside tabular. Inestable.
-% Better use \captionof{table}{..}
+% Support footnotes inside tabular. No use table
+% instead, use \captionof{table}{..}
 \makesavenoteenv{tabular}
 \makesavenoteenv{tabularx}
 \makesavenoteenv{table}
+
+\RequirePackage{setspace} % to set different spacing in paragraphs
 
 % booktabs provide nice spacing, but rule widths and distances need modifying
 \setlength{\heavyrulewidth}{0.5pt}            % wide rule
@@ -278,7 +341,7 @@
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 
 \AtBeginEnvironment{tabular}{%                % font inside tables will be small
-  \sffamily\fontsize{7.5}{10}\selectfont
+  \fontsize{7.5}{10}\selectfont
 }
 %% command we can use to add some text e.g. below the table
 \newcommand{\addtabletext}[1]{{\setlength{\leftskip}{9pt}\fontsize{7}{9}\selectfont#1}}
@@ -304,12 +367,16 @@
 \RequirePackage[
   skip=3pt,                                   % vertical space between caption and figure
   labelfont={bf,sf},                          % we bold the caption label
-  labelsep=colon,                             % periods after label (Fig. 1:)
-  figurename=Fig.,                            % figure will be abbreviated
+  labelsep=period,                       % periods after label (Fig. 1:)
+  % figurename=Figire                            % figure will be abbreviated
   % tablename=Tbl.,                             % table will be abbreviated
 ]{caption}
 % overall font types (excluding label)
-\DeclareCaptionFormat{fmt}{\normalfont\sffamily\fontsize{7}{9}\selectfont#1#2#3}
+\iftoggle{conference}{%
+  \DeclareCaptionFormat{fmt}{\normalfont\fontsize{10pt}{11pt}\selectfont#1#2#3}
+}{
+  \DeclareCaptionFormat{fmt}{\normalfont\fontsize{8pt}{10pt}\selectfont#1#2#3}
+}
 \captionsetup*{format=fmt}                        % for figures
 \captionsetup*[table]{format=fmt,position=above}  % for tables
 
@@ -325,11 +392,7 @@
 \RequirePackage{lipsum}
 
 % Todo notes
-\RequirePackage[size=\tiny]{todonotes}
-
-%Revision
-
-% \RequirePackage{easyReview}
+\RequirePackage{todonotes}
 
 % Science-related packages
 
@@ -371,7 +434,8 @@
 \setlength{\bibsep}{0.0pt}
 \bibliographystyle{unsrtnat}
 %% set Bibliography font
-\renewcommand\bibfont{\normalfont\sffamily\fontsize{6}{8}\selectfont}
+\renewcommand\bibfont{\normalfont\fontsize{10}{11}\selectfont}
+
 %% Use "References" as bibliography title
 \renewcommand{\bibname}{References}
 \renewcommand{\refname}{References}
@@ -394,6 +458,9 @@
   {\color{black50} \hrule width 72pt height 0.25pt}
   \kern 2.5pt
 }
+
+
+\RequirePackage{hyphenat} % break long verbatim text
 
 % References and bookmarks
 
@@ -424,7 +491,7 @@
 % https://tex.stackexchange.com/questions/183702/formatting-back-references-in-bibliography-bibtex
 
 %% Set URL link color & font
-\renewcommand\UrlFont{\color{anoma}\sffamily}
+\renewcommand\UrlFont{\color{anoma}}
 
 % References
 \RequirePackage[
@@ -443,6 +510,31 @@
 \RequirePackage{doi} % DOIs
 \RequirePackage[nottoc]{tocbibind} % References section in TOC (for SI)
 
+% Nice typesetting of codeblocks
+
+
+
+\definecolor{light-gray}{gray}{0.95}
+\lstset{columns=fullflexible,%
+basicstyle=\ttfamily\footnotesize,%
+backgroundcolor=\color{light-gray},%
+xleftmargin=0.5cm,%
+frame=tlbr,%
+framesep=4pt,%
+framerule=0pt%
+}
+\usemintedstyle{trac}
+\newminted[betterpython]{python}{%
+linenos=false,%
+breaklines,%
+autogobble,%
+frame=leftline,%
+framerule=0.5pt,%
+framesep=2em,
+tabsize=2
+}
+
+
 %
 % Other Setup
 
@@ -456,7 +548,7 @@
 % Typesetting for authors/affiliations
 \RequirePackage{authblk}
 \setlength{\affilsep}{8.5pt} % 16.5pts between base of author line and base of affil line
-\renewcommand\Authfont{\color{color0}\normalfont\sffamily\bfseries\fontsize{9}{11}\selectfont}
+\renewcommand\Authfont{\color{color0}\normalfont\bfseries\fontsize{9}{11}\selectfont}
 \renewcommand\Affilfont{\color{color0}\footnotefont}
 \renewcommand\AB@affilsepx{\newline\protect\Affilfont}
 \renewcommand\Authands{, and }
@@ -476,7 +568,13 @@ x}
 
 %% Article meta data additional fields
 \newcommand{\pubdoi}[1]{\def\@pubdoi{#1}}
-\newcommand{\history}[1]{\def\@history{#1}}                         % publication DOI
+
+\iftoggle{history}{%
+\newcommand{\history}[1]{\def\@history{#1}}%
+}{%
+\newcommand{\history}[1]{}%
+}
+
 \newcommand{\keywords}[1]{\def\@keywords{#1}}                 % keywords
 \newcommand{\sep}[0]{; }                                      % keyword separator
 \newcommand{\contact}[1]{\def\@contact{#1}}                   % contact author
@@ -512,7 +610,7 @@ x}
     \footerfont\textit{Supplementary Information}\hspace{7pt}|%         % we add SI as text
   }{
     \iftoggle{footpreprint}{
-      \footerfont\textit{Anoma Research Topics}\hspace{7pt}|%                        % we add preprint text
+      \footerfont\href{http://art.anoma.net}{Anoma Research Topics}\hspace{7pt}|%                        % we add preprint text
     }{}
   }
   \iftoggle{footdate}{
@@ -536,7 +634,7 @@ x}
       }}}%
       \vcenter{%  
         {\Large
-        \textit{\textbf{Anoma Research Topics}}} | \textsf{\arttype{}}
+        \href{https://art.anoma.net}{Anoma Research Topics}} | \textsf{\arttype{}}
       }$ 
       % \hrule 
       }                            % article type  
@@ -569,7 +667,7 @@ x}
     }{
     \RequirePackage{lineno}
   }
-  \renewcommand\linenumberfont{\normalfont\tiny\sffamily}
+  \renewcommand\linenumberfont{\normalfont\tiny}
   \linenumbers
 }{}
 
@@ -580,31 +678,31 @@ x}
 \setcounter{secnumdepth}{5}
 
 \titleformat{\section}
-  {\large\sffamily\bfseries}
+  {\large\bfseries}
   {\thesection.}
   {0.5em}
   {#1}
   []
 \titleformat{name=\section,numberless}
-  {\large\sffamily\bfseries}
+  {\large\bfseries}
   {}
   {0em}
   {#1}
   []  
 \titleformat{\subsection}[runin]
-  {\sffamily\bfseries}
+  {\bfseries}
   {\thesubsection.}
   {0.5em}
   {#1. }
   []
 \titleformat{\subsubsection}[runin]
-  {\sffamily\bfseries}
+  {\bfseries}
   {\thesubsubsection.}
   {0.5em}
   {#1. }
   []
 \titleformat{\paragraph}[runin]
-  {\sffamily\small\bfseries}
+  {\small\bfseries}
   {}
   {0em}
   {#1}
@@ -752,6 +850,9 @@ x}
   {\centering\contactswitch{}}
   %
   \vspace*{\fill}%
+  \iftoggle{toc}{%
+  \tableofcontents
+  }{}
 }
 {% else if complete paper
   %
@@ -775,6 +876,9 @@ x}
   \abstractBox{\abscontent{}}{absshadecolor}}
   \noindent % This is to remove indentation of minipage
   \vskip5pt%
+  \iftoggle{toc}{%
+  \tableofcontents
+  }{}
 }%
 \noindent
 \@ifundefined{@history}{}{%

@@ -1,0 +1,22 @@
+\documentclass[
+    9pt,            % 8-20pt possible
+    techreport,        % select between  ``techreport'', ``report'', 
+    affiltop,       % switch, put affiliations under authors (instead 
+]{art}
+
+\input{metadata.tex}
+\input{macros.tex}
+
+\begin{document}
+
+\maketitle
+
+
+\tableofcontents
+
+\input{main.tex}
+
+\bibliography{ref.bib}
+\input{appendix.tex}
+
+\end{document}
